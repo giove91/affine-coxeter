@@ -317,25 +317,25 @@ for i, h in enumerate(horizontal_elements):
         assert ok   # there should be at least one horizontal reflection below u
 
     for j in xrange(2*order):
-        p = point_on_axis + j * axis_direction/2
+        a = point_on_axis + j * axis_direction/2
 
         # p is not on any hyperplane
-        assert all(alpha*p not in ZZ for alpha in roots)
+        assert all(alpha*a not in ZZ for alpha in roots)
 
         # find possible walls of p
         available_hyperplanes = list(itertools.chain.from_iterable(
-            [(alpha, floor(alpha*p)), (alpha, floor(alpha*p)+1)] for alpha in available_vertical_roots)) \
+            [(alpha, floor(alpha*a)), (alpha, floor(alpha*a)+1)] for alpha in available_vertical_roots)) \
             + available_horizontal_hyperplanes
 
-        walls = get_walls(n, p, available_hyperplanes)
+        walls = get_walls(n, a, available_hyperplanes)
         assert len(walls) == l
 
         positive_walls = sorted(
-            [(alpha, k) for (alpha, k) in walls if alpha*axis_direction/(k-alpha*p) > 0],
-            key=lambda (alpha, k): (k-alpha*p)/(alpha*axis_direction))
+            [(alpha, k) for (alpha, k) in walls if alpha*axis_direction/(k-alpha*a) > 0],
+            key=lambda (alpha, k): (k-alpha*a)/(alpha*axis_direction))
         negative_walls = sorted(
-            [(alpha, k) for (alpha, k) in walls if alpha*axis_direction/(k-alpha*p) < 0],
-            key=lambda (alpha, k): (k-alpha*p)/(alpha*axis_direction))
+            [(alpha, k) for (alpha, k) in walls if alpha*axis_direction/(k-alpha*a) < 0],
+            key=lambda (alpha, k): (k-alpha*a)/(alpha*axis_direction))
         horizontal_walls = [(alpha, k) for (alpha, k) in walls if alpha*axis_direction == 0]
 
         if args.verbose and orthogonal:
