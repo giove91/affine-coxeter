@@ -22,7 +22,7 @@ def use_subprocess(func):
 ###########################################################
 
 parser = argparse.ArgumentParser(description='Check hyperbolic isometries of [1,w].')
-parser.add_argument('case', type=str, help='one of F4, E6, E7, E8')
+parser.add_argument('case', type=str, help='one of F4, E6, E7, E8, C?')
 parser.add_argument('-v', '--verbose', action='store_true')
 
 args = parser.parse_args()
