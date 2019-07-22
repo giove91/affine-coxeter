@@ -246,7 +246,8 @@ horizontal_elements = sorted(horizontal_elements, key=lambda u: length(u))
 
 print "Horizontal elements by length: {}".format([
         len(list(group)) for l, group in itertools.groupby(horizontal_elements, key=lambda u: length(u))
-    ])
+    ])  # in the case E8, this is equal to the bottom row of [MS17, Figure 13]
+
 
 
 # check hyperbolic elements
