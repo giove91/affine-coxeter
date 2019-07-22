@@ -24,4 +24,4 @@ The optional argument `-v` can be added to print more information.
 
 [MS17] J. McCammond and R. Sulway, *Artin groups of Euclidean type*, Inventiones Mathematicae 210(1), 231-282 (2017).
 
-[PS19] G. Paolini and M. Salvetti, *Proof of the K(pi,1) conjecture for affine Artin groups*, arXiv preprint (2019).
+[PS19] G. Paolini and M. Salvetti, *Proof of the K(&#x03C0;,1) conjecture for affine Artin groups*, arXiv preprint (2019).
