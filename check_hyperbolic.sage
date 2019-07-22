@@ -2,6 +2,24 @@ import argparse
 import itertools
 from operator import mul
 
+import multiprocessing
+# https://stackoverflow.com/questions/31941951/workaround-memory-leak-in-shared-object
+def use_subprocess(func):
+      def conn_func(conn, *args, **kwargs):
+            conn.send(func(*args, **kwargs))
+            conn.close()
+
+      def new_function(*args, **kwargs):
+            parent_conn, child_conn = multiprocessing.Pipe()
+            p = multiprocessing.Process(target=conn_func, args=[child_conn]+list(args), kwargs=kwargs)
+            p.start()
+            result = parent_conn.recv()
+            p.join()
+            return result
+
+      return new_function
+
+###########################################################
 
 parser = argparse.ArgumentParser(description='Check hyperbolic isometries of [1,w].')
 parser.add_argument('case', type=str, help='one of F4, E6, E7, E8')
@@ -236,6 +254,7 @@ print "\nCheck hyperbolic elements..."
 
 orthogonal = True   # are positive (resp. negative) walls always pairwise orthogonal?
 
+@use_subprocess
 def get_walls(n, p, hyperplanes):
     """
     Given a list of hyperplanes {alpha*x = k}, given as pairs (alpha, k), and a
