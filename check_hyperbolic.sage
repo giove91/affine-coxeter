@@ -168,7 +168,7 @@ for alpha, beta in itertools.combinations(horizontal_roots, 2):
     if alpha*beta != 0:
         horizontal_components.union(alpha, beta)
 
-horizontal_components = list(horizontal_components)
+horizontal_components = list(sorted(horizontal_components, key=len))
 sizes = [V.subspace(component).dimension() for component in horizontal_components]
 print "Horizontal components: {}".format(', '.join(["A{}".format(k) for k in sizes]))
 
@@ -209,6 +209,10 @@ for i in xrange(len(horizontal_components)):
         element for element, group in itertools.groupby(sorted(horizontal_elements_by_component[i]))
     ]
 
+    # a horizontal component should form half of a noncrossing partition lattice of type B_{size+1}
+    # and the cardinality of a noncrossing partition lattice is given in [Arm09, Figure 2.8]
+    assert len(horizontal_elements_by_component[i]) == binomial(2*(size+1), size+1) / 2
+
 horizontal_elements = [reduce(mul, comb, Aff.one()) for comb in itertools.product(*horizontal_elements_by_component)]
 
 
@@ -222,6 +226,112 @@ def length(u):
 # sort horizontal elements by reflection length
 horizontal_elements = sorted(horizontal_elements, key=lambda u: length(u))
 
-print "Bottom row of the coarse structure: {}".format([
+print "Horizontal elements by length: {}".format([
         len(list(group)) for l, group in itertools.groupby(horizontal_elements, key=lambda u: length(u))
     ])
+
+
+# check hyperbolic elements
+print "\nCheck hyperbolic elements..."
+
+orthogonal = True   # are positive (resp. negative) walls always pairwise orthogonal?
+
+def get_walls(n, p, hyperplanes):
+    """
+    Given a list of hyperplanes {alpha*x = k}, given as pairs (alpha, k), and a
+    point p in the complement of every hyperplane, find the walls of the chamber
+    containing p.
+    """
+    chamber = Polyhedron(ieqs=[
+        ([-k] + list(alpha) if alpha*p - k > 0 else [k] + list(-alpha)) \
+        for alpha, k in hyperplanes])
+    walls = []
+
+    for face in chamber.faces(n-1):
+        [equation] = face.as_polyhedron().equations()
+        k = -equation[0]
+        alpha = vector(equation[1:])
+
+        walls.append((alpha, k))
+
+    return walls
+
+for i, h in enumerate(horizontal_elements):
+    u = w*(h**(-1)) # left complement of the horizontal element h
+    assert u*h == w
+    l = m+1-length(h)   # reflection length of u
+    print "[{}/{}]".format(i+1, len(horizontal_elements))
+
+    if args.verbose:
+        print "l(u) = {}".format(l)
+        print u
+        print
+
+    # find W = Span(Mov(u))
+    W = V.subspace([V(u(p)-p) for p in e + [zero_vector(n)]])
+    assert W.dimension() == l-1
+
+    # find order of the linear part of u
+    u_order = 1
+    A = u.matrix()[:n,:n]
+    while A**u_order != matrix.identity(n):
+        u_order += 1
+    assert (u**u_order).matrix()[:n,:n] == matrix.identity(n)
+
+    # find roots below u (necessary condition)
+    available_roots = [alpha for alpha in roots if alpha in W]
+    available_horizontal_roots = [alpha for alpha in available_roots if alpha*axis_direction == 0]
+    available_vertical_roots = [alpha for alpha in available_roots if alpha*axis_direction != 0]
+
+    available_horizontal_hyperplanes = []
+
+    for alpha in available_horizontal_roots:
+        # which horizontal hyperplanes {alpha*x = k} are really below u?
+        # r <= u if and only if r*h is a horizontal element of [1,w] and l(r*h)=l(h)+1
+        ok = False
+        for k in [floor(alpha*point_on_axis), floor(alpha*point_on_axis)+1]:
+            r = reflection(alpha, k)
+            if r*h in horizontal_elements and length(r*h) == length(h)+1:
+                available_horizontal_hyperplanes.append((alpha, k))
+                ok = True
+
+        assert ok   # there should be at least one horizontal reflection below u
+
+    for j in xrange(2*order):
+        p = point_on_axis + j * axis_direction/2
+
+        # p is not on any hyperplane
+        assert all(alpha*p not in ZZ for alpha in roots)
+
+        # find possible walls of p
+        available_hyperplanes = list(itertools.chain.from_iterable(
+            [(alpha, floor(alpha*p)), (alpha, floor(alpha*p)+1)] for alpha in available_vertical_roots)) \
+            + available_horizontal_hyperplanes
+
+        walls = get_walls(n, p, available_hyperplanes)
+        assert len(walls) == l
+
+        positive_walls = sorted(
+            [(alpha, k) for (alpha, k) in walls if alpha*axis_direction/(k-alpha*p) > 0],
+            key=lambda (alpha, k): (k-alpha*p)/(alpha*axis_direction))
+        negative_walls = sorted(
+            [(alpha, k) for (alpha, k) in walls if alpha*axis_direction/(k-alpha*p) < 0],
+            key=lambda (alpha, k): (k-alpha*p)/(alpha*axis_direction))
+        horizontal_walls = [(alpha, k) for (alpha, k) in walls if alpha*axis_direction == 0]
+
+        if args.verbose and orthogonal:
+            # check if positive walls are orthogonal
+            if any(alpha*beta != 0 for (alpha, k), (beta, h) in itertools.combinations(positive_walls, 2)):
+                print "The positive/negative walls are not pairwise orthogonal!"
+                orthogonal = False
+
+            # check if negative walls are orthogonal
+            if any(alpha*beta != 0 for (alpha, k), (beta, h) in itertools.combinations(negative_walls, 2)):
+                print "The positive/negative walls are not pairwise orthogonal!"
+                orthogonal = False
+
+        # check that u can be obtained as the product of the walls
+        assert any(reduce(mul, [reflection(alpha, k) for alpha, k in positive_walls + list(horizontal) + negative_walls], Aff.one()) == u \
+            for horizontal in itertools.permutations(horizontal_walls))
+
+print "Case {} checked successfully".format(args.case)
