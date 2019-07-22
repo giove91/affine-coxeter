@@ -17,6 +17,12 @@ sage check_hyperbolic.sage E8
 
 The optional argument `-v` can be added to print more information.
 
+The case C is also implemented. For example:
+
+```bash
+sage check_hyperbolic.sage C2
+```
+
 ### Bibliography
 
 [Arm09] D. Armstrong, *Generalized noncrossing partitions and combinatorics of Coxeter groups*, Memoirs of the American Mathematical Society (2009).
