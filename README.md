@@ -3,7 +3,7 @@
 This program checks Lemma 3.21 of [PS19] for the exceptional affine Coxeter groups F4, E6, E7, E8 (the case G2 can be easily checked by hand).
 The lemma is checked for all hyperbolic elements *u* in [1,*w*], without the irreducibility hypothesis.
 
-Requirements: Sage 8.8 and Python 2.7.
+Requirements: [SageMath](https://www.sagemath.org/) 8.8 and Python 2.7.
 
 
 ### Usage
